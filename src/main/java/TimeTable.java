@@ -18,7 +18,6 @@ public class TimeTable extends JFrame implements ActionListener {
     private Autoassociator autoassociator;
 
 
-
     public TimeTable() {
         super("Dynamic Time Table");
         setSize(500, 800);
@@ -60,13 +59,11 @@ public class TimeTable extends JFrame implements ActionListener {
             tools.add(tool[i]);
         }
 
-        field[0].setText("17");
-        field[1].setText("381");
-        field[2].setText("lse-f-91.stu");
+        field[0].setText("18");
+        field[1].setText("622");
+        field[2].setText("car-s-91.stu");
         field[3].setText("1");
     }
-
-
 
 
     public void draw() {
@@ -85,6 +82,44 @@ public class TimeTable extends JFrame implements ActionListener {
         while (source != tool[result]) result++;
         return result;
     }
+
+    private void logState(int iteration, int clashes) {
+        try {
+            logWriter.write("Iteration: " + iteration + ", Clashes: " + clashes + "\n");
+            logWriter.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void trainAutoassociator() {
+        try {
+            for (int i = 1; i < courses.length(); i++) {
+                if (courses.status(i) == 0) {
+                    int[] timeslotPattern = courses.getTimeSlot(i);
+                    autoassociator.training(timeslotPattern);
+                    logWriter.write("Trained on timeslot: " + i + ", Pattern: " + Arrays.toString(timeslotPattern) + "\n");
+                }
+            }
+            logWriter.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void applyAutoassociatorUpdates() {
+        try {
+            for (int i = 1; i < courses.length(); i++) {
+                int[] currentTimeslot = courses.getTimeSlot(i);
+                autoassociator.fullUpdate(currentTimeslot);
+                logWriter.write("Applied Autoassociator update to timeslot: " + i + ", Updated Pattern: " + Arrays.toString(currentTimeslot) + "\n");
+                logWriter.flush();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
 
     public void actionPerformed(ActionEvent click) {
         int min, step, clashes;
@@ -129,66 +164,23 @@ public class TimeTable extends JFrame implements ActionListener {
                 break;
             case 4:
                 System.exit(0);
-                break;
             case 5:
-                courses.iterate(Integer.parseInt(field[4].getText()));
-                applyAutoassociatorUpdates();
-                draw();
-                break;
-//                min = Integer.MAX_VALUE;
-//                step = 0;
-//                for (int i = 1; i < courses.length(); i++) courses.setSlot(i, 0);
-//                for (int iteration = currentIteration; iteration <= Integer.parseInt(field[3].getText()); iteration++) {
-//                    courses.iterate(Integer.parseInt(field[4].getText()));
-//                    draw();
-//                    clashes = courses.clashesLeft();
-//                    if (clashes < min) {
-//                        min = clashes;
-//                        step = iteration;
-//                    }
-//                }
-//                System.out.println("Shift = " + field[4].getText() + "\tMin clashes = " + min + "\tat step " + step);
-//                currentIteration = step + 1;
-//                setVisible(true);
-//                break;
-        }
-    }
-
-
-    private void logState(int iteration, int clashes) {
-        try {
-            logWriter.write("Iteration: " + iteration + ", Clashes: " + clashes + "\n");
-            logWriter.flush();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void trainAutoassociator() {
-        try {
-            for (int i = 1; i < courses.length(); i++) {
-                if (courses.status(i) == 0) {
-                    int[] timeslotPattern = courses.getTimeSlot(i);
-                    autoassociator.training(timeslotPattern);
-                    logWriter.write("Trained on timeslot: " + i + ", Pattern: " + Arrays.toString(timeslotPattern) + "\n");
+                min = Integer.MAX_VALUE;
+                step = 0;
+                for (int i = 1; i < courses.length(); i++) courses.setSlot(i, 0);
+                for (int iteration = currentIteration; iteration <= Integer.parseInt(field[3].getText()); iteration++) {
+                    courses.iterate(Integer.parseInt(field[4].getText()));
+                    draw();
+                    clashes = courses.clashesLeft();
+                    if (clashes < min) {
+                        min = clashes;
+                        step = iteration;
+                    }
                 }
-            }
-            logWriter.flush();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void applyAutoassociatorUpdates() {
-        try {
-            for (int i = 1; i < courses.length(); i++) {
-                int[] currentTimeslot = courses.getTimeSlot(i);
-                autoassociator.fullUpdate(currentTimeslot);
-                logWriter.write("Applied Autoassociator update to timeslot: " + i + ", Updated Pattern: " + Arrays.toString(currentTimeslot) + "\n");
-                logWriter.flush();
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
+                System.out.println("Shift = " + field[4].getText() + "\tMin clashes = " + min + "\tat step " + step);
+                currentIteration = step + 1;
+                setVisible(true);
+                break;
         }
     }
 

@@ -7,22 +7,18 @@ public class Autoassociator {
 
 
 	public Autoassociator(CourseArray courses) {
-		int numCourses = courses.length();
-		weights = new int[numCourses][numCourses];
-		trainingCapacity = numCourses;
+		weights = new int[courses.length()][courses.length()];
 
-//		weights = new int[courses.length()][courses.length()];
-//
-//		for (int i = 1; i < courses.length(); i++) {
-//			for (int j = 1; j < courses.length(); j++) {
-//				if (i != j && courses.elements[i].clashesWith.contains(courses.elements[j]))
-//					weights[i][j] = -1;
-//				else
-//					weights[i][j] = 0;
-//			}
-//		}
-//
-//		trainingCapacity = courses.length() - 1;
+		for (int i = 1; i < courses.length(); i++) {
+			for (int j = 1; j < courses.length(); j++) {
+				if (i != j && courses.elements[i].clashesWith.contains(courses.elements[j]))
+					weights[i][j] = -1;
+				else
+					weights[i][j] = 0;
+			}
+		}
+
+		trainingCapacity = courses.length() - 1;
 	}
 
 	public int getTrainingCapacity() {
